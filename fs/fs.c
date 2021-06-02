@@ -207,6 +207,11 @@ int fs_set_blk_dev(const char *ifname, const char *dev_part_str, int fstype)
 	}
 #endif
 
+	//block_dev_desc_t *fs_dev_desc;
+	//disk_partition_t fs_partition;
+	fs_dev_desc = NULL;
+	
+			
 	part = get_device_and_partition(ifname, dev_part_str, &fs_dev_desc,
 					&fs_partition, 1);
 	if (part < 0)

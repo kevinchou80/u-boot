@@ -15,7 +15,7 @@
 #include <part.h>
 #include <sata.h>
 
-static int sata_curr_device = -1;
+int sata_curr_device = -1;
 block_dev_desc_t sata_dev_desc[CONFIG_SYS_SATA_MAX_DEVICE];
 
 int __sata_initialize(void)
@@ -24,6 +24,11 @@ int __sata_initialize(void)
 	int i;
 
 	for (i = 0; i < CONFIG_SYS_SATA_MAX_DEVICE; i++) {
+
+#if defined(CONFIG_RTK_AHSATA)
+		extern void sata_init(int port);
+		sata_init(i);
+#endif
 		memset(&sata_dev_desc[i], 0, sizeof(struct block_dev_desc));
 		sata_dev_desc[i].if_type = IF_TYPE_SATA;
 		sata_dev_desc[i].dev = i;
@@ -39,8 +44,9 @@ int __sata_initialize(void)
 		if (!rc) {
 			rc = scan_sata(i);
 			if (!rc && (sata_dev_desc[i].lba > 0) &&
-				(sata_dev_desc[i].blksz > 0))
+				(sata_dev_desc[i].blksz > 0)) {
 				init_part(&sata_dev_desc[i]);
+			}
 		}
 	}
 	sata_curr_device = 0;
@@ -73,20 +79,26 @@ static int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int rc = 0;
 
-	if (argc == 2 && strcmp(argv[1], "stop") == 0)
-		return sata_stop();
+	if (argc == 2 && strcmp(argv[1], "stop") == 0) {
+		if (sata_curr_device != -1) {
+			return sata_stop();
+		}
+		return 1;
+	}
 
 	if (argc == 2 && strcmp(argv[1], "init") == 0) {
-		if (sata_curr_device != -1)
+		if (sata_curr_device != -1) {
 			sata_stop();
-
+		}
 		return sata_initialize();
 	}
 
 	/* If the user has not yet run `sata init`, do it now */
-	if (sata_curr_device == -1)
-		if (sata_initialize())
+	if (sata_curr_device == -1) {
+		if (sata_initialize()) {
 			return 1;
+		}
+	}
 
 	switch (argc) {
 	case 0:

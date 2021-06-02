@@ -1135,13 +1135,15 @@ static int ehci_common_init(struct ehci_ctrl *ctrl, uint tweaks)
 }
 
 #ifndef CONFIG_DM_USB
-int usb_lowlevel_stop(int index)
+//int usb_lowlevel_stop(int index)
+int ehci_lowlevel_stop(int index)
 {
-	ehci_shutdown(&ehcic[index]);
+	//ehci_shutdown(&ehcic[index]);
 	return ehci_hcd_stop(index);
 }
 
-int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
+//int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
+int ehci_lowlevel_init(int index, enum usb_init_type init, void **controller)
 {
 	struct ehci_ctrl *ctrl = &ehcic[index];
 	uint tweaks = 0;
@@ -1176,6 +1178,7 @@ int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
 		return rc;
 
 	ctrl->rootdev = 0;
+	ctrl->ctrl_type = CTRL_TYPE_EHCI;
 done:
 	*controller = &ehcic[index];
 	return 0;
@@ -1554,19 +1557,22 @@ static int _ehci_submit_int_msg(struct usb_device *dev, unsigned long pipe,
 }
 
 #ifndef CONFIG_DM_USB
-int submit_bulk_msg(struct usb_device *dev, unsigned long pipe,
+//int submit_bulk_msg(struct usb_device *dev, unsigned long pipe,
+int ehci_submit_bulk_msg(struct usb_device *dev, unsigned long pipe,
 			    void *buffer, int length)
 {
 	return _ehci_submit_bulk_msg(dev, pipe, buffer, length);
 }
 
-int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
+//int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
+int ehci_submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 		   int length, struct devrequest *setup)
 {
 	return _ehci_submit_control_msg(dev, pipe, buffer, length, setup);
 }
 
-int submit_int_msg(struct usb_device *dev, unsigned long pipe,
+//int submit_int_msg(struct usb_device *dev, unsigned long pipe,
+int ehci_submit_int_msg(struct usb_device *dev, unsigned long pipe,
 		   void *buffer, int length, int interval)
 {
 	return _ehci_submit_int_msg(dev, pipe, buffer, length, interval);

@@ -11,6 +11,8 @@
 #ifndef _WATCHDOG_H_
 #define _WATCHDOG_H_
 
+#include <watchdog_api.h>
+
 #if !defined(__ASSEMBLY__)
 /*
  * Reset the watchdog timer, always returns 0

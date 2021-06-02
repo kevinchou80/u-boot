@@ -30,7 +30,10 @@ static const struct block_drvr block_drvr[] = {
 	{ .name = "ide", .get_dev = ide_get_dev, },
 #endif
 #if defined(CONFIG_CMD_SATA)
-	{.name = "sata", .get_dev = sata_get_dev, },
+	{ .name = "sata", .get_dev = sata_get_dev, },
+#endif
+#if defined(CONFIG_CMD_SD)
+	{ .name = "sd", .get_dev = sd_get_dev, },
 #endif
 #if defined(CONFIG_CMD_SCSI)
 	{ .name = "scsi", .get_dev = scsi_get_dev, },
@@ -38,7 +41,7 @@ static const struct block_drvr block_drvr[] = {
 #if defined(CONFIG_CMD_USB) && defined(CONFIG_USB_STORAGE)
 	{ .name = "usb", .get_dev = usb_stor_get_dev, },
 #endif
-#if defined(CONFIG_MMC)
+#if defined(CONFIG_CMD_MMC)
 	{
 		.name = "mmc",
 		.get_dev = mmc_get_dev,
@@ -84,15 +87,20 @@ static block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart)
 #endif
 		if (strncmp(ifname, name, strlen(name)) == 0) {
 			block_dev_desc_t *dev_desc = reloc_get_dev(dev);
-			if (!dev_desc)
+			if (!dev_desc) {
 				return NULL;
-			if (hwpart == 0 && !select_hwpart)
+			}
+			if (hwpart == 0 && !select_hwpart) {
 				return dev_desc;
-			if (!select_hwpart)
+			}
+			if (!select_hwpart) {
 				return NULL;
+			}
 			ret = select_hwpart(dev_desc->dev, hwpart);
-			if (ret < 0)
+			if (ret < 0) {
+
 				return NULL;
+			}
 			return dev_desc;
 		}
 		drvr++;
@@ -305,6 +313,9 @@ static void print_part_header(const char *type, block_dev_desc_t *dev_desc)
 		break;
 	case IF_TYPE_SATA:
 		puts ("SATA");
+		break;
+	case IF_TYPE_SD:
+		puts ("SD");
 		break;
 	case IF_TYPE_SCSI:
 		puts ("SCSI");
@@ -596,7 +607,12 @@ int get_device_and_partition(const char *ifname, const char *dev_part_str,
 		if ((part > 0) || (!allow_whole_dev)) {
 			printf("** No partition table - %s %s **\n", ifname,
 			       dev_str);
-			goto cleanup;
+			printf("*No partition table, try part 0 again!\n*");
+			if ( part != 1){
+				printf("** Partition %d not valid on device %d **\n",
+						part, (*dev_desc)->dev);
+				goto cleanup;
+			}
 		}
 
 		(*dev_desc)->log2blksz = LOG2((*dev_desc)->blksz);

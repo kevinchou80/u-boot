@@ -41,3 +41,11 @@ int cleanup_before_linux(void)
 
 	return 0;
 }
+
+int cleanup_before_bootcode(void) {
+	return cleanup_before_linux();
+}
+
+int cleanup_before_dvrbootexe(void) {
+	return cleanup_before_linux();
+}

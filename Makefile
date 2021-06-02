@@ -524,6 +524,23 @@ endif
 endif
 endif
 
+#########################################################################
+# Build MIPS Image Related Setting
+
+MIPS_BOOTLOAD_IMAGE_ENABLE	= y
+ifdef CONFIG_RTD1295
+MIPS_BOOTLOAD_IMAGE_PATH	= image/rtd1295
+MIPS_BOOTLOAD_LIB_DIR		= image/rtd1295/src/app
+endif
+ifdef CONFIG_RTD1395
+MIPS_BOOTLOAD_IMAGE_PATH	= image/rtd1395
+MIPS_BOOTLOAD_LIB_DIR		= image/rtd1395/src/app
+endif
+MIPS_BOOTLOAD_LIB_NAME		= libbootload.o
+MIPS_BOOTLOAD_LIB_PATH		= $(MIPS_BOOTLOAD_LIB_DIR)/$(MIPS_BOOTLOAD_LIB_NAME)
+
+#########################################################################
+
 # If board code explicitly specified LDSCRIPT or CONFIG_SYS_LDSCRIPT, use
 # that (or fail if absent).  Otherwise, search for a linker script in a
 # standard location.
@@ -634,6 +651,7 @@ libs-y += drivers/dma/
 libs-y += drivers/gpio/
 libs-y += drivers/i2c/
 libs-y += drivers/mmc/
+libs-y += drivers/pcb_mgr/
 libs-y += drivers/mtd/
 libs-$(CONFIG_CMD_NAND) += drivers/mtd/nand/
 libs-y += drivers/mtd/onenand/
@@ -687,9 +705,12 @@ u-boot-main := $(libs-y)
 ifeq ($(CONFIG_USE_PRIVATE_LIBGCC),y)
 PLATFORM_LIBGCC = arch/$(ARCH)/lib/lib.a
 else
-PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(c_flags) -print-libgcc-file-name`) -lgcc
+PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(AACC) $(c_flags) -print-libgcc-file-name`) -lgcc
 endif
 PLATFORM_LIBS += $(PLATFORM_LIBGCC)
+ifneq ($(wildcard static_lib/libefuse.a),)
+PLATFORM_LIBS += static_lib/libefuse.a
+endif
 export PLATFORM_LIBS
 export PLATFORM_LIBGCC
 
@@ -699,6 +720,7 @@ export PLATFORM_LIBGCC
 LDPPFLAGS += \
 	-include $(srctree)/include/u-boot/u-boot.lds.h \
 	-DCPUDIR=$(CPUDIR) \
+	-DMIPS_BOOTLOAD_LIB_PATH=$(MIPS_BOOTLOAD_LIB_PATH) \
 	$(shell $(LD) --version | \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
@@ -1125,9 +1147,9 @@ u-boot.elf: u-boot.bin
 # Rule to link u-boot
 # May be overridden by arch/$(ARCH)/config.mk
 quiet_cmd_u-boot__ ?= LD      $@
-      cmd_u-boot__ ?= $(LD) $(LDFLAGS) $(LDFLAGS_u-boot) -o $@ \
-      -T u-boot.lds $(u-boot-init)                             \
-      --start-group $(u-boot-main) --end-group                 \
+      cmd_u-boot__ ?= $(LD) $(LDFLAGS) $(LDFLAGS_u-boot) -o $@ 				\
+      -T u-boot.lds $(u-boot-init)                             				\
+      --start-group $(u-boot-main) $(MIPS_BOOTLOAD_LIB_PATH) --end-group 	\
       $(PLATFORM_LIBS) -Map u-boot.map
 
 quiet_cmd_smap = GEN     common/system_map.o
@@ -1138,6 +1160,21 @@ cmd_smap = \
 		-c $(srctree)/common/system_map.c -o common/system_map.o
 
 u-boot:	$(u-boot-init) $(u-boot-main) u-boot.lds
+ifeq ($(MIPS_BOOTLOAD_IMAGE_ENABLE),y)
+		$(CC) $(CFLAGS) -c -o $(MIPS_BOOTLOAD_LIB_DIR)/bootload.o $(MIPS_BOOTLOAD_LIB_DIR)/bootload.c
+		$(LD) $(LDFLAGS) -r -o $(MIPS_BOOTLOAD_LIB_DIR)/$(MIPS_BOOTLOAD_LIB_NAME) $(MIPS_BOOTLOAD_LIB_DIR)/bootload.o
+		$(OBJCOPY) --add-section .v_entry=$(MIPS_BOOTLOAD_IMAGE_PATH)/v_entry.img $(MIPS_BOOTLOAD_LIB_PATH)
+		$(OBJCOPY) --add-section .exc_redirect=$(MIPS_BOOTLOAD_IMAGE_PATH)/exc_redirect.img $(MIPS_BOOTLOAD_LIB_PATH)
+		$(OBJCOPY) --add-section .exc_dispatch=$(MIPS_BOOTLOAD_IMAGE_PATH)/exc_dispatch.img $(MIPS_BOOTLOAD_LIB_PATH)
+		$(OBJCOPY) --add-section .isrvideoimg=$(MIPS_BOOTLOAD_IMAGE_PATH)/isr_video.img $(MIPS_BOOTLOAD_LIB_PATH)
+		$(OBJCOPY) --add-section .rosbootvectorimg=$(MIPS_BOOTLOAD_IMAGE_PATH)/ros_bootvector.img $(MIPS_BOOTLOAD_LIB_PATH)
+		$(OBJCOPY) --add-section .a_entry=$(MIPS_BOOTLOAD_IMAGE_PATH)/a_entry.img $(MIPS_BOOTLOAD_LIB_PATH)
+
+else
+		@echo "Warning : MIPS_BOOTLOAD_IMAGE_ENABLE = n"
+endif
+
+
 	$(call if_changed,u-boot__)
 ifeq ($(CONFIG_KALLSYMS),y)
 	$(call cmd,smap)
@@ -1247,7 +1284,9 @@ $(timestamp_h): $(srctree)/Makefile FORCE
 
 PHONY += depend dep
 depend dep:
-	@echo '*** Warning: make $@ is unnecessary now.'
+#	@echo '*** Warning: make $@ is unnecessary now.'
+
+
 
 # ---------------------------------------------------------------------------
 quiet_cmd_cpp_lds = LDS     $@
