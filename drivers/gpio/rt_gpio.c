@@ -448,3 +448,42 @@ int setISOGPIO_pullsel(int ISOGPIO_NUM, unsigned char pull_sel)
 	set_pconf_pullsel(ISOGPIO_NUM+101, pull_sel);
 	return 0;
 }
+
+int gpio_free(unsigned gpio)
+{
+	return 0;
+}
+
+int gpio_direction_input(unsigned gpio)
+{
+	return 0;
+}
+
+int gpio_direction_output(unsigned gpio, int value)
+{
+	if (gpio > 100) {
+		return setISOGPIO(gpio - 101, value);
+	} else {
+		return setGPIO(gpio, value);
+	}
+}
+
+int gpio_get_value(unsigned gpio)
+{
+	if (gpio > 100) {
+		return getISOGPIO(gpio - 101);
+	} else {
+		return getGPIO(gpio);
+	}
+}
+
+#include <errno.h>
+
+int gpio_request(unsigned gpio, const char *label)
+{
+	if (gpio < 135) {
+		return 0;
+	} else {
+		return -ENXIO;
+	}
+}
