@@ -154,6 +154,8 @@
 	#endif
 #endif
 
+#define CONFIG_SYS_NO_BL31
+
 /* Boot Revision */
 #define CONFIG_COMPANY_ID 		"0000"
 #define CONFIG_BOARD_ID         "0705"
