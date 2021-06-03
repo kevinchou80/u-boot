@@ -718,6 +718,19 @@ void tftp_start(enum proto_t protocol)
 	debug("TFTP blocksize = %i, timeout = %ld ms\n",
 	      tftp_block_size_option, timeout_ms);
 
+#ifdef CONFIG_IP_DEFRAG
+#ifndef CONFIG_NET_MAXDEFRAG
+#define CONFIG_NET_MAXDEFRAG 16384
+#endif
+	if (tftp_block_size_option > CONFIG_NET_MAXDEFRAG) {
+		printf("*** Warning: TFTP blksize > CONFIG_NET_MAXDEFRAG (%d), if transmission fail, run `env set tftpblocksize %d` to fix it\n", CONFIG_NET_MAXDEFRAG, CONFIG_NET_MAXDEFRAG);
+	}
+#else
+	if (tftp_block_size_option > 1468) {
+		printf("*** Warning: TFTP blksize > 1468 (MTU - header), if transmission fail, run `env set tftpblocksize 1468` to fix it\n");
+	}
+#endif
+
 	tftp_remote_ip = net_server_ip;
 	if (net_boot_file_name[0] == '\0') {
 		sprintf(default_filename, "%02X%02X%02X%02X.img",
