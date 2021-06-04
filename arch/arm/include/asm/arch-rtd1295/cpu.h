@@ -77,6 +77,10 @@ static inline u32 get_rtd129x_cpu_revision(void) {
 	return val; 
 }
 
+static inline unsigned int get_rtd129x_cpu_sn(void) {
+	return __raw_readl((volatile u32*)(EFUSE_ADDR));
+}
+
 #endif
 
 

@@ -741,6 +741,13 @@ int envmatch(uchar *s1, int i2)
 	return -1;
 }
 
+__attribute__((weak))
+void gen_primary_mac(char *value)
+{
+	srand(get_ticks());
+	sprintf(value, "00:10:20:30:%02x:%02x", rand() % 256, rand() % 256);
+}
+
 #ifndef CONFIG_SPL_BUILD
 static int do_env_default(cmd_tbl_t *cmdtp, int __flag,
 			  int argc, char * const argv[])
@@ -770,8 +777,7 @@ static int do_env_default(cmd_tbl_t *cmdtp, int __flag,
 		/* Reset the whole environment */
 		set_default_env("## Resetting to default environment\n");
 		
-		srand(get_ticks());
-		sprintf(tmp_value, "00:10:20:30:%02x:%02x", rand() % 256, rand() % 256);
+		gen_primary_mac(tmp_value);
 		value = tmp_value;
 		setenv("ethaddr", value);
 		/*MAC address will be changed every time when setting default values.*/

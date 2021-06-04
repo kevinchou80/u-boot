@@ -135,18 +135,28 @@ void delete_env(void)
 
 void env_relocate_spec(void)
 {
+	char tmp_value[32];
 #if !defined(ENV_IS_EMBEDDED)
 	char *buf = NULL;
 
 	if (read_env((unsigned long)CONFIG_ENV_SIZE, (const void **)&buf)){
 		set_default_env(NULL);
+		gen_primary_mac(tmp_value);
+		setenv("ethaddr", tmp_value);
 #ifdef NAS_ENABLE
 		saveenv();
 #endif
+		return;
     }
 
-	env_import(buf, 1);
-
+	if (env_import(buf, 1)) {
+		char* ethaddr = getenv("ethaddr");
+		if (!ethaddr || !strcmp("00:10:20:30:40:50", ethaddr)) {
+			gen_primary_mac(tmp_value);
+			setenv("ethaddr", tmp_value);
+			saveenv();
+		}
+	}
 #endif
 }
 
