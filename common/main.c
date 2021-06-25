@@ -77,6 +77,11 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <asm/arch/system.h>
 #include <linux/input.h>
 #endif
+
+#ifdef CONFIG_INSTALL_GPIO_NUM
+#include <asm-generic/gpio.h>
+#endif
+
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
@@ -393,7 +398,7 @@ start = get_timer(0);
 				break;
 		}
 #ifdef CONFIG_INSTALL_GPIO_NUM
-		if(!getGPIO(CONFIG_INSTALL_GPIO_NUM)){		
+		if(!gpio_get_value(CONFIG_INSTALL_GPIO_NUM)){		
 			printf("\nPress Install Button\n");
 			setenv("rescue_cmd", "go r");
 			boot_mode = BOOT_RESCUE_MODE;

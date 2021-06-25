@@ -3827,6 +3827,11 @@ int rtk_plat_prepare_fw_image_from_eMMC(void)
 		printf("---------------LOAD  GOLD  FW  TABLE ---------------\n");
 		eMMC_fw_desc_table_start = eMMC_bootcode_area_size + CONFIG_FACTORY_SIZE + CONFIG_FW_TABLE_SIZE;
 	}
+	else if (boot_mode==BOOT_RESCUE_MODE)
+	{
+		printf("---------------LOAD  RESCUE  FW  TABLE ---------------\n");
+		eMMC_fw_desc_table_start = eMMC_bootcode_area_size + CONFIG_FACTORY_SIZE + (CONFIG_FW_TABLE_SIZE << 1);
+	}
 	else
 	{
 		printf("---------------LOAD  NORMAL FW  TABLE ---------------\n");
