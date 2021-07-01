@@ -98,8 +98,9 @@ SECTIONS
 		*(.__rel_dyn_end)
 	}
 
+	. = ALIGN(8);
 	_end = .;
-
+	. += 0x200;
 	. = ALIGN(8);
 
 	.bss_start : {

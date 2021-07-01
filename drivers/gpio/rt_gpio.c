@@ -477,6 +477,11 @@ int gpio_get_value(unsigned gpio)
 	}
 }
 
+int gpio_set_value(unsigned gpio, int value)
+{
+	return gpio_direction_output(gpio, value);
+}
+
 #include <errno.h>
 
 int gpio_request(unsigned gpio, const char *label)

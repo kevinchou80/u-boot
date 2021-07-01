@@ -80,6 +80,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_INSTALL_GPIO_NUM
 #include <asm-generic/gpio.h>
+#include <asm-generic/sections.h>
+#include <libfdt.h>
+
+int32_t install_button[2] = {CONFIG_INSTALL_GPIO_NUM, 0};
+
+#ifdef CONFIG_LED_RED_GPIO_NUM
+int32_t red_led[2] = {CONFIG_LED_RED_GPIO_NUM, 1};
+#endif
+
 #endif
 
 /*
@@ -353,7 +362,31 @@ int abortboot(int bootdelay)
 #ifdef CONFIG_FT_TEST
 	ft_init_gpio();
 #endif
-start = get_timer(0);
+#ifdef CONFIG_INSTALL_GPIO_NUM
+	const void *fdt = _end;
+	int fdt_offset;
+	int32_t *fdt_value;
+	if (!fdt_check_header(fdt) && fdt_totalsize(fdt) <= (__bss_start - _end)) {
+		if ((fdt_offset = fdt_path_offset(fdt, "/keys/power")) >= 0) {
+			fdt_value = (int32_t *)fdt_getprop_w(fdt, fdt_offset, "gpio", NULL);
+			if (fdt_value >= 0) {
+				install_button[0] = fdt32_to_cpu(fdt_value[0]);
+				install_button[1] = 1 - fdt32_to_cpu(fdt_value[1]);
+			}
+		}
+#ifdef CONFIG_LED_RED_GPIO_NUM
+		if ((fdt_offset = fdt_path_offset(fdt, "/leds/red")) >= 0) {
+			fdt_value = fdt_getprop_w(fdt, fdt_offset, "gpio", NULL);
+			if (fdt_value >= 0) {
+				red_led[0] = fdt32_to_cpu(fdt_value[0]);
+				red_led[1] = 1 - fdt32_to_cpu(fdt_value[1]);
+			}
+		}
+#endif
+	}
+	mdelay(10); //skip power button click
+#endif 
+	start = get_timer(0);
 	//for (loop_i = 0;loop_i < DETECT_KEY_RETRY_COUNT && (!abort);loop_i++) {
 	while (get_timer(start) < delay && (!abort)){
 		if (tstc()) {	/* we got a key press from UART */
@@ -398,11 +431,18 @@ start = get_timer(0);
 				break;
 		}
 #ifdef CONFIG_INSTALL_GPIO_NUM
-		if(!gpio_get_value(CONFIG_INSTALL_GPIO_NUM)){		
+		if (gpio_get_value(install_button[0]) == install_button[1]) {		
 			printf("\nPress Install Button\n");
 			setenv("rescue_cmd", "go r");
 			boot_mode = BOOT_RESCUE_MODE;
 			abort = 1; // don't auto boot
+#ifdef CONFIG_LED_RED_GPIO_NUM
+			gpio_set_value(red_led[0], red_led[1]);
+			do {
+				mdelay(500);
+			} while (gpio_get_value(install_button[0]) == install_button[1]);
+			gpio_set_value(red_led[0], 1 - red_led[1]);
+#endif
 		}
 #endif
 
