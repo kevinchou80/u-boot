@@ -84,6 +84,12 @@
 		#define CONFIG_RESCUE_FROM_USB_ROOTFS			"rescue.root.emmc.cpio.gz_pad.img"
 	#endif /* CONFIG_RESCUE_FROM_USB */
 
+	/* SPI */
+	#define CONFIG_RTKSPI
+	#define CONFIG_CMD_RTKSPI
+	#define CONFIG_LZMA
+	#define CONFIG_CMD_LZMADEC
+
 #elif defined(CONFIG_SYS_RTK_NAND_FLASH)
 	/* Flash writer setting:
 	*   The corresponding setting will be located at
