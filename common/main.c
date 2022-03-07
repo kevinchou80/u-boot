@@ -756,6 +756,24 @@ int abortboot(int bootdelay)
 # endif	/* CONFIG_AUTOBOOT_KEYED */
 #endif	/* CONFIG_BOOTDELAY >= 0  */
 
+static void gpio_defaults (void)
+{
+	const void *fdt = _end;
+	int fdt_offset;
+	int32_t *fdt_value;
+	int value_len;
+	if (!fdt_check_header(fdt) && fdt_totalsize(fdt) <= (__bss_start - _end)) {
+		if ((fdt_offset = fdt_path_offset(fdt, "/gpio")) >= 0) {
+			fdt_value = (int32_t *)fdt_getprop_w(fdt, fdt_offset, "gpios", &value_len);
+			if (value_len > 0 && fdt_value >= 0) {
+				for (int i = 0; i + 1 < (value_len >> 2); i += 2) {
+					gpio_set_value(fdt32_to_cpu(fdt_value[i]), fdt32_to_cpu(fdt_value[i + 1]));
+				}
+			}
+		}
+	}
+}
+
 /****************************************************************************/
 
 void main_loop (void)
@@ -886,6 +904,8 @@ void main_loop (void)
 		printf("[WARN] bootcmd in env is NULL.\n");
 		printf("[WARN] you need to execute \"env default -f\" to reset env.\n");
 	}
+
+	gpio_defaults();
 
 	if (bootdelay >= 0 && s && !abortboot (bootdelay)) {
 #ifdef CONFIG_CUSTOMIZE_BOOTFLOW_1
