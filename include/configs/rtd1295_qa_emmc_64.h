@@ -90,6 +90,20 @@
 	#define CONFIG_LZMA
 	#define CONFIG_CMD_LZMADEC
 
+	/* SATA */
+	#define CONFIG_RTK_AHSATA
+	#define CONFIG_CMD_SATA
+
+	#ifdef CONFIG_CMD_SATA
+		#define CONFIG_RTK_AHSATA
+		#define CONFIG_SYS_SATA_MAX_DEVICE      1
+		#define CONFIG_DWC_AHSATA_BASE_ADDR     0x9803F000
+		#define CONFIG_LBA48
+		#define CONFIG_SYS_64BIT_LBA
+		#define CONFIG_LIBATA
+		#define CONFIG_PORT0_POWER_PIN			56
+	#endif
+
 #elif defined(CONFIG_SYS_RTK_NAND_FLASH)
 	/* Flash writer setting:
 	*   The corresponding setting will be located at
