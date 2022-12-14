@@ -14,8 +14,11 @@ unsigned int  spd;
 unsigned int i2c_current_speed[RTK_I2C_CNT] = {0};
 
 #define FIFO_THRESHOLD                   4
-#define DEFAULT_SPEED                    100	/*must use 400KHz, then NETWORK ping ok, and AMP, YAMAHA will ok too, gene@20110714*/
-
+#ifdef  CONFIG_SYS_I2C_SPEED
+#define DEFAULT_SPEED                    CONFIG_SYS_I2C_SPEED
+#else
+#define DEFAULT_SPEED                    400	/*must use 400KHz, then NETWORK ping ok, and AMP, YAMAHA will ok too, gene@20110714*/
+#endif
 
 #ifdef CONFIG_RTD1395
 
