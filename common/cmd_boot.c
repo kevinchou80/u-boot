@@ -365,6 +365,7 @@ int boot_rescue_from_usb(void)
 	int ret = RTK_PLAT_ERR_OK;
 	char *filename;
 	unsigned int secure_mode=0;
+	unsigned int spi_updated;
 
 	secure_mode = rtk_get_secure_boot_type();
 
@@ -375,7 +376,69 @@ int boot_rescue_from_usb(void)
 		printf("No USB device found!\n");
 		return RTK_PLAT_ERR_READ_RESCUE_IMG;
 	}
+#if defined(CONFIG_SYNO_SPI_LAYOUT)
+	spi_updated=0;
+	filename = CONFIG_UBOOT_FILE;
+	sprintf(tmpbuf, "fatload usb 0:1 0x3000000 %s", filename);
+	if (run_command(tmpbuf, 0) == 0){
+		printf("Loading \"%s\" to 0x3000000 is OK.\n\n", filename);
+		if(getenv_ulong("filesize", 16, 0) <= CONFIG_UBOOT_SIZE)
+		{
+			#if defined(SYS_LED_PWM_PORT_NUM) && defined(CONFIG_RTD129X_PWM)
+			pwm_set_freq(SYS_LED_PWM_PORT_NUM, 20);  // set the frequency to 20 HZ
+			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
+			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
+			#endif
+			run_command("rtkspi erase 0x20000 0xa0000", 0);
+			run_command("rtkspi write "STR(CONFIG_UBOOT_ADDR)" 0x3000000 "STR(CONFIG_UBOOT_SIZE), 0);
+			spi_updated=1;
+		}
+	}else{
+		printf("Loading \"%s\" from USB failed. Continue installing dsm images\n", filename);
+	}
 
+	filename = CONFIG_DSM_FIRMWARE;
+	sprintf(tmpbuf, "fatload usb 0:1 0x3000000 %s", filename);
+	if (run_command(tmpbuf, 0) == 0){
+		printf("Loading \"%s\" to 0x3000000 is OK.\n\n", filename);
+		if(getenv_ulong("filesize", 16, 0) <= CONFIG_FWIMG_SIZE)
+		{
+			#if defined(SYS_LED_PWM_PORT_NUM) && defined(CONFIG_RTD129X_PWM)
+			pwm_set_freq(SYS_LED_PWM_PORT_NUM, 20);  // set the frequency to 20 HZ
+			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
+			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
+			#endif
+			run_command("rtkspi erase "STR(CONFIG_FWIMG_ADDR)" "STR(CONFIG_FWIMG_SIZE), 0);
+			run_command("rtkspi write "STR(CONFIG_FWIMG_ADDR)" 0x3000000 "STR(CONFIG_FWIMG_SIZE), 0);
+			spi_updated=1;
+		}
+	}else{
+		printf("Loading \"%s\" from USB failed. Continue installing dtb images\n", filename);
+	}
+	
+	filename = CONFIG_SYNO_DTB;
+	sprintf(tmpbuf, "fatload usb 0:1 0x3000000 %s", filename);
+	if (run_command(tmpbuf, 0) == 0){
+		printf("Loading \"%s\" to 0x3000000 is OK.\n\n", filename);
+        if(getenv_ulong("filesize", 16, 0) <= CONFIG_DTS_SIZE)
+		{
+			#if defined(SYS_LED_PWM_PORT_NUM) && defined(CONFIG_RTD129X_PWM)
+			pwm_set_freq(SYS_LED_PWM_PORT_NUM, 20);  // set the frequency to 20 HZ
+			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
+			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
+			#endif
+			run_command("rtkspi erase "STR(CONFIG_DTS_BASE)" "STR(CONFIG_DTS_SIZE), 0);
+			run_command("rtkspi write "STR(CONFIG_DTS_BASE)" 0x3000000 "STR(CONFIG_DTS_SIZE), 0);
+			spi_updated=1;
+		}
+	}else{
+		printf("Loading \"%s\" from USB failed. Continue installing os images\n", filename);
+	}
+	if(spi_updated)
+	{
+		run_command("reset", 0);
+	}
+#endif
 	/* DTB */
 	if ((filename = getenv("rescue_dtb")) == NULL) {
 		filename =(char*) CONFIG_RESCUE_FROM_USB_DTB;
@@ -490,6 +553,12 @@ int boot_rescue_from_usb(void)
 
 loading_failed:
 	printf("Loading \"%s\" from USB failed.\n", filename);
+	#ifdef  CONFIG_EMMC_SYNO_DUAL_BOOT
+		boot_from_flash = BOOT_FROM_FLASH_NORMAL_MODE;
+		boot_from_usb = BOOT_FROM_USB_DISABLE;
+		boot_mode = BOOT_NORMAL_MODE;
+		return rtk_plat_boot_handler();
+	#endif
 	return RTK_PLAT_ERR_READ_RESCUE_IMG;
 }
 #endif /* CONFIG_RESCUE_FROM_USB */

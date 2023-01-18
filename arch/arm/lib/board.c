@@ -868,6 +868,17 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif /* CONFIG_RTD129X_PWM */
 #endif /* CONFIG_BOARD_WD_MONARCH */ /* CONFIG_BOARD_WD_PELICAN */
 
+#ifdef CONFIG_BOARD_CM360
+#if defined(CONFIG_RTD129X_PWM)
+    rtd129x_pwm_init();
+    //  turn on the FAN
+    pwm_set_duty_rate(FAN_PWM_PORT_NUM, 40);  // set the FAN speed to 40%
+    pwm_enable(FAN_PWM_PORT_NUM, 1);
+	// enable the sata1 LED at the earlier boot
+    pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM,50);
+    pwm_enable(SYS_LED_PWM_PORT_NUM,1);
+#endif /* CONFIG_RTD129X_PWM */
+#endif /* CONFIG_BOARD_CM360 */
 
 #ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init();

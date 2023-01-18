@@ -322,11 +322,8 @@ int abortboot(int bootdelay)
     if (factory_read(BOOT_RECOVERY_FILE_NAME, &dst_addr, &dst_length)) {
         printf("\n------------can't find %s\n", BOOT_RECOVERY_FILE_NAME);
     } else {
-        //bootloader_message* pBootMsg = (bootloader_message*)dst_addr;
-        //if (strcmp("boot-recovery", pBootMsg->command) == 0) {
             printf("\n------------We will Enter Recovery Rescue\n");
             bEnterRecovery = 1;
-        //}
     }
 
 #endif
@@ -433,7 +430,11 @@ int abortboot(int bootdelay)
 #ifdef CONFIG_INSTALL_GPIO_NUM
 		if (gpio_get_value(install_button[0]) == install_button[1]) {		
 			printf("\nPress Install Button\n");
+			#if defined(CONFIG_SYNO_SPI_LAYOUT)
+			setenv("rescue_cmd", "go ru");
+			#else
 			setenv("rescue_cmd", "go r");
+			#endif
 			boot_mode = BOOT_RESCUE_MODE;
 			abort = 1; // don't auto boot
 #ifdef CONFIG_LED_RED_GPIO_NUM
@@ -443,6 +444,13 @@ int abortboot(int bootdelay)
 			} while (gpio_get_value(install_button[0]) == install_button[1]);
 			gpio_set_value(red_led[0], 1 - red_led[1]);
 #endif
+
+#if defined(SYS_LED_PWM_PORT_NUM) && defined(CONFIG_RTD129X_PWM)
+			pwm_set_freq(SYS_LED_PWM_PORT_NUM, 1);  // set the frequency to 1 HZ
+			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
+			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
+#endif
+
 		}
 #endif
 
