@@ -329,7 +329,11 @@ void rtkspi_init_regs( void )
 
 void rtkspi_init( void )
 {
-    rtkspi_identify();
+    if(rtkspi_identify()==-1)
+   {
+		   printf("!!!! init failed !!!!\n");
+		   return;
+   }
     rtkspi_init_regs();
     spi_switch_read_mode();
 }
@@ -911,6 +915,10 @@ int do_rtkspi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
             return -1;
         }
 
+        if( pspi_flash_type == NULL && cmd != 0 ) {
+            printf("Error: unrecognized nor flash\n");
+            return -1;
+        }
         _iSPI_base_addr += SPI_RBUS_BASE_ADDR;
 #if 1
         printf("\n");
