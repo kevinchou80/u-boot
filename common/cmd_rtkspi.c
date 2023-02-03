@@ -183,6 +183,10 @@ int rtkspi_identify( void )
     unsigned int id;
     unsigned int idx;
     unsigned int temp_id;
+    #ifdef CHECK_NOR_UID
+    unsigned int unique_id1;
+    unsigned int unique_id2;
+    #endif
 
     // init global variable
     spi_flash_id_idx = 0;
@@ -190,7 +194,7 @@ int rtkspi_identify( void )
     spi_flash_min_erase_size = 0;
     spi_flash_max_erase_size = 0;
 
-	/* Remove this setting, because has set in rom code */ 
+	/* Remove this setting, because has set in rom code */
     // configure spi flash controller register
     //rtd_outl(SB2_SFC_POS_LATCH,0x00000001);   //set serial flash controller latch data at rising edge
 
@@ -210,6 +214,24 @@ int rtkspi_identify( void )
 
     printf("nor flash id [0x%08x]\n", id);
 
+    #ifdef CHECK_NOR_UID
+    rtd_outl(SB2_SFC_OPCODE,0x0000004b);
+    rtd_outl(SB2_SFC_CTL,0x00000014);
+    sync();
+    unique_id1 = rtd_inl(SPI_RBUS_BASE_ADDR);
+    rtd_outl(SB2_SFC_OPCODE,0x0000004b);
+    rtd_outl(SB2_SFC_CTL,0x00000017);
+    sync();
+    unique_id2 = rtd_inl(SPI_RBUS_BASE_ADDR);
+    unique_id1 = rtkspi_swap_endian(unique_id1);
+    unique_id2 = rtkspi_swap_endian(unique_id2);
+    printf("nor unique id [0x%08x]\t[0x%08x]\n", unique_id1,unique_id2);
+    if (unique_id1 != NOR_UID1 || unique_id2 != NOR_UID2)
+    {
+        printf("!!!! unique ID not match !!!!\n");
+        return -1;
+    }
+    #endif
     // find the match flash brand
     for (idx = 0; idx < DEV_SIZE_S; idx++)
     {
