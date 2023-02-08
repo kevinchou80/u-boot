@@ -454,6 +454,7 @@ int abortboot(int bootdelay)
 		}
 #endif
 
+#ifdef FACTORY_RST_BTN
 #if defined(CONFIG_BOARD_WD_MONARCH)||defined(CONFIG_BOARD_WD_PELICAN)
         /**
            @WD_Changes_begin
@@ -474,6 +475,7 @@ int abortboot(int bootdelay)
             abort = 1; // don't auto boot
         }
 #endif /* CONFIG_BOARD_WD_MONARCH */ /* CONFIG_BOARD_WD_PELICAN) */
+#endif
 
 #if 0//defined(CONFIG_SYS_IR_SUPPORT)		
 //		if( rtd_readbits(IR_SR_reg, _BIT0)){	
