@@ -29,9 +29,9 @@
 /* MMC */
 #ifdef CONFIG_RTK_MMC_DRIVER
 	#define CONFIG_MMC
-	#ifdef CONFIG_SYS_RTK_SPI_FLASH
+/* 	#ifdef CONFIG_SYS_RTK_SPI_FLASH*/
  	#define CONFIG_RTK_EMMC_TRADITIONAL_MODE 
-	#endif
+/* 	#endif*/
 	#ifndef CONFIG_PARTITIONS
 		#define CONFIG_PARTITIONS
 	#endif
