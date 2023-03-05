@@ -228,7 +228,7 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 		printf("mmc read fail...\n");
 		return 0;
 	}
-#ifndef CONFIG_SYS_RTK_EMMC_FLASH
+/*#ifndef CONFIG_SYS_RTK_EMMC_FLASH
 	if (blkcnt > 1) {
 		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
 		cmd.cmdarg = 0;
@@ -240,7 +240,7 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 			return 0;
 		}
 	}
-#endif
+#endif*/
 	return blkcnt;
 }
 
@@ -341,11 +341,11 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 		printf("mmc write failed\n");
 		return 0;
 	}
-#ifndef CONFIG_SYS_RTK_EMMC_FLASH	//in realtek eMMC IP, hardware will send the stop command
+/*#ifndef CONFIG_SYS_RTK_EMMC_FLASH	//in realtek eMMC IP, hardware will send the stop command
 	/* SPI multiblock writes terminate using a special
 	 * token, not a STOP_TRANSMISSION request.
 	 */
-	#ifndef CONFIG_SYS_RTK_EMMC_FLASH
+/*	#ifndef CONFIG_SYS_RTK_EMMC_FLASH
 	if (!mmc_host_is_spi(mmc) && blkcnt > 1) {
 		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
 		cmd.cmdarg = 0;
@@ -356,7 +356,7 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 		}
 	}
 	#endif
-#endif
+#endif*/
 	/* Waiting for the ready status */
 	if (mmc_send_status(mmc, timeout))
 		return 0;
