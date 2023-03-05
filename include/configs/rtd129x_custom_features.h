@@ -133,6 +133,7 @@
 #define CONFIG_CMD_GPT
 #define CONFIG_PARTITION_UUIDS
 #define CONFIG_CMD_EXT4
+#define CONFIG_CMD_EXT4_WRITE
 
 #define COUNTER_FREQUENCY               27000000 /* FIXME, need to know what impact it will cause */
 
