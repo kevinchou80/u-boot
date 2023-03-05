@@ -891,6 +891,17 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif /* CONFIG_RTD129X_PWM */
 #endif /* CONFIG_BOARD_LENOVO_T1 */
 
+#ifdef CONFIG_BOARD_LENOVO_T2
+	int gpio_set_value(unsigned gpio, int value);
+	gpio_set_value(CONFIG_FAN_ENABLE_GPIO_NUM, 1);
+#if defined(CONFIG_RTD129X_PWM)
+    rtd129x_pwm_init();
+    //  turn on the FAN
+    pwm_set_duty_rate(FAN_PWM_PORT_NUM, 50);  // set the FAN speed to 50%
+    pwm_enable(FAN_PWM_PORT_NUM, 1);
+#endif /* CONFIG_RTD129X_PWM */
+#endif /* CONFIG_BOARD_LENOVO_T2 */
+
 #ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init();
 #endif
