@@ -37,8 +37,6 @@
 #include <asm/arch/rbus/crt_reg.h>
 #include <asm/arch/platform_lib/board/gpio.h>
 
-#define SSCEN 0
-
 struct sata_port_regs {
 	u32 clb;
 	u32 clbu;
@@ -90,6 +88,37 @@ struct sata_host_regs {
 	u32 testr;
 	u32 versionr;
 	u32 idr;
+};
+
+static const unsigned int PHY_PARA_TABLE[] = {
+	0x00001111, 0x00005111, 0x00009111,
+	0x336a0511, 0x336a4511, 0x336a8511,
+	0xE0700111, 0xE05C4111, 0xE04A8111,
+	0x00150611, 0x00154611, 0x00158611,
+	0xC6000A11, 0xC6004A11, 0xC6008A11,
+	0x70000211, 0x70004211, 0x70008211,
+	0xC6600A11, 0xC6604A11, 0xC6608A11,
+	0x20041911, 0x20045911, 0x20049911,
+	0x94aa2011, 0x94aa6011, 0x94aaa011,
+	0x17171511, 0x17175511, 0x17179511,
+	0x07701611, 0x07705611, 0x07709611,
+	0x40002a11, 0x40006a11, 0x4000aa11,
+	0x29001011, 0x29005011, 0x29009011,
+	0x40000C11, 0x40004C11, 0x40008C11,
+	0x00271711, 0x00275711, 0x00279711,
+};
+
+static const unsigned int TX_DRV_TABLE[] = {
+	//max_683mV
+	0x94a72011, 0x94a76011, 0x94a7a011,
+	0x587a2111, 0x587a6111, 0x587aa111,
+};
+
+static const unsigned int PHY_SENSITIVITY[][6] = {
+	{ 0x72100911, 0x72104911, 0x72108911,
+		0x27730311, 0x27684311, 0x27688311 },
+	{ 0x42100911, 0x42104911, 0x42108911,
+		0x276f0311, 0x276d4311, 0x276d8311 },
 };
 
 #define MAX_DATA_BYTES_PER_SG  (4 * 1024 * 1024)
@@ -158,7 +187,7 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 	}
 
 	if (timeout <= 0) {
-		debug("controller reset failed (reg val 0x%08x)\n", tmp);
+		printf("controller reset failed (reg val 0x%08x)\n", tmp);
 		return -1;
 	}
 
@@ -186,7 +215,7 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 	probe_ent->n_ports =
 		(probe_ent->cap & SATA_HOST_CAP_NP_MASK) + 1;
 
-	debug("cap 0x%x  port_map 0x%x  n_ports %d\n",
+	printf("cap 0x%x  port_map 0x%x  n_ports %d\n",
 		probe_ent->cap, probe_ent->port_map, probe_ent->n_ports);
 
 	for (i = 0; i < probe_ent->n_ports; i++) {
@@ -225,7 +254,7 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 				;
 
 			if (timeout <= 0) {
-				debug("port reset failed (0x%x)\n", tmp);
+				printf("port reset failed (0x%x)\n", tmp);
 				return -1;
 			}
 		}
@@ -240,7 +269,7 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 			&& --timeout)
 			;
 		if (timeout <= 0) {
-			debug("Spin-Up can't finish!\n");
+			printf("Spin-Up can't finish!\n");
 			return -1;
 		}
 
@@ -258,7 +287,7 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 			&& --timeout)
 			;
 		if (timeout <= 0) {
-			debug("Can't find DIAG_X set!\n");
+			printf("Can't find DIAG_X set!\n");
 			return -1;
 		}
 
@@ -268,13 +297,13 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 		 * bit location.
 		 */
 		tmp = readl(&(port_mmio->serr));
-		debug("P#SERR 0x%x\n",
+		printf("P#SERR 0x%x\n",
 				tmp);
 		writel(tmp, &(port_mmio->serr));
 
 		/* Ack any pending irq events for this port */
 		tmp = readl(&(host_mmio->is));
-		debug("IS 0x%x\n", tmp);
+		printf("IS 0x%x\n", tmp);
 		if (tmp)
 			writel(tmp, &(host_mmio->is));
 
@@ -286,7 +315,7 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 		/* register linkup ports */
 		for(retry=0; retry<100; retry++) {
 			tmp = readl(&(port_mmio->ssts));
-			debug("Port %d status: 0x%x\n", i, tmp);
+			printf("Port %d status: 0x%x\n", i, tmp);
 			if ((tmp & SATA_PORT_SSTS_DET_MASK) == 0x03) {
 				probe_ent->link_port_map |= (0x01 << i);
 				break;
@@ -297,10 +326,10 @@ static int ahci_host_init(struct ahci_probe_ent *probe_ent)
 	}
 
 	tmp = readl(&(host_mmio->ghc));
-	debug("GHC 0x%x\n", tmp);
+	printf("GHC 0x%x\n", tmp);
 	writel(tmp | SATA_HOST_GHC_IE, &(host_mmio->ghc));
 	tmp = readl(&(host_mmio->ghc));
-	debug("GHC 0x%x\n", tmp);
+	printf("GHC 0x%x\n", tmp);
 
 	return 0;
 }
@@ -476,7 +505,7 @@ static int ahci_exec_ata_cmd(struct ahci_probe_ent *probe_ent,
 		printf("timeout exit!\n");
 		return -1;
 	}
-	debug("ahci_exec_ata_cmd: %d byte transferred.\n",
+	printf("ahci_exec_ata_cmd: %d byte transferred.\n",
 	      pp->cmd_slot->status);
 
 	return buf_len;
@@ -509,9 +538,9 @@ static int ahci_port_start(struct ahci_probe_ent *probe_ent,
 	u32 mem;
 	int timeout = 0;
 
-	debug("Enter start port: %d\n", port);
+	printf("Enter start port: %d\n", port);
 	port_status = readl(&(port_mmio->ssts));
-	debug("Port %d status: %x\n", port, port_status);
+	printf("Port %d status: %x\n", port, port_status);
 	if ((port_status & 0xf) != 0x03) {
 		printf("No Link on this port!\n");
 		return -1;
@@ -532,7 +561,7 @@ static int ahci_port_start(struct ahci_probe_ent *probe_ent,
 	 * 32 bytes each in size
 	 */
 	pp->cmd_slot = (struct ahci_cmd_hdr *)(ulong)mem;
-	debug("cmd_slot = %p\n", pp->cmd_slot);
+	printf("cmd_slot = %p\n", pp->cmd_slot);
 	mem += (AHCI_CMD_SLOT_SZ * DWC_AHSATA_MAX_CMD_SLOTS);
 
 	/*
@@ -546,7 +575,7 @@ static int ahci_port_start(struct ahci_probe_ent *probe_ent,
 	 * and its scatter-gather table
 	 */
 	pp->cmd_tbl = mem;
-	debug("cmd_tbl_dma = 0x%lx\n", pp->cmd_tbl);
+	printf("cmd_tbl_dma = 0x%lx\n", pp->cmd_tbl);
 
 	mem += AHCI_CMD_TBL_HDR;
 
@@ -562,7 +591,7 @@ static int ahci_port_start(struct ahci_probe_ent *probe_ent,
 	/* Wait device ready for 100 * 1 = 100 seconds = 1.5 minutes*/
 	for (timeout=0; timeout < SATA_DRIVE_SPIN_UP_READY_TIMEOUT_IN_SECONDS ; timeout++) {
         if( readl(&(port_mmio->tfd)) & (SATA_PORT_TFD_STS_ERR | SATA_PORT_TFD_STS_DRQ | SATA_PORT_TFD_STS_BSY) ) {
-          debug("Wait device ready %d\n", timeout);
+          printf("Wait device ready %d\n", timeout);
           mdelay(1000);  // wait for 1 second
         }else {
           break;
@@ -578,7 +607,7 @@ static int ahci_port_start(struct ahci_probe_ent *probe_ent,
 			  PORT_CMD_POWER_ON | PORT_CMD_SPIN_UP |
 			  PORT_CMD_START, &(port_mmio->cmd));
 
-	debug("Exit start port %d\n", port);
+	printf("Exit start port %d\n", port);
 
 	return 0;
 }
@@ -610,7 +639,7 @@ int init_sata(int dev)
 		return 1;
 	}
 
-	for (i = 0; i < probe_ent->n_ports; i++) {
+	for (i = dev; i < probe_ent->n_ports; i++) {
 		if ((linkmap >> i) && ((linkmap >> i) & 0x01)) {
 			if (ahci_port_start(probe_ent, (u8)i)) {
 				printf("Can not start port %d\n", i);
@@ -672,7 +701,7 @@ static void dwc_ahsata_xfer_mode(int dev, u16 *id)
 
 	probe_ent->pio_mask = id[ATA_ID_PIO_MODES];
 	probe_ent->udma_mask = id[ATA_ID_UDMA_MODES];
-	debug("pio %04x, udma %04x\n\r",
+	printf("pio %04x, udma %04x\n\r",
 		probe_ent->pio_mask, probe_ent->udma_mask);
 }
 
@@ -1029,7 +1058,7 @@ int scan_sata(int dev)
 	/* Check if support LBA48 */
 	if (ata_id_has_lba48(id)) {
 		pdev->lba48 = 1;
-		debug("Device support LBA48\n\r");
+		printf("Device support LBA48\n\r");
 	}
 
 	/* Get the NCQ queue depth from device */
@@ -1144,11 +1173,20 @@ static int phy_link_check(unsigned int port)
 
 static void config_phy(unsigned int port, unsigned int rx_sens)
 {
+	unsigned int *table;
+	unsigned int i;
+	int size;
 	rtd_outl(SATA_MDIO_CTR1, port);
 
-	wr_reg(0x00001111, SATA_MDIO_CTR);
-	wr_reg(0x00005111, SATA_MDIO_CTR);
-	wr_reg(0x00009111, SATA_MDIO_CTR);
+	table = (unsigned int *)&PHY_PARA_TABLE;
+	size = sizeof(PHY_PARA_TABLE)/sizeof(unsigned int);
+	for (i = 0; i < size; i++)
+		wr_reg(table[i], SATA_MDIO_CTR);
+	table = (unsigned int *)&TX_DRV_TABLE;
+	size = sizeof(TX_DRV_TABLE)/sizeof(unsigned int);
+	for (i = 0; i < size; i++)
+		wr_reg(table[i], SATA_MDIO_CTR);
+
 #if SSCEN
 	printf("[SATA] spread-spectrum enable\n");
 	wr_reg(0x738E0411, SATA_MDIO_CTR);
@@ -1166,68 +1204,21 @@ static void config_phy(unsigned int port, unsigned int rx_sens)
 	wr_reg(0x538E4411, SATA_MDIO_CTR);
 	wr_reg(0x538E8411, SATA_MDIO_CTR);
 #endif
-	wr_reg(0x336a0511, SATA_MDIO_CTR);
-	wr_reg(0x336a4511, SATA_MDIO_CTR);
-	wr_reg(0x336a8511, SATA_MDIO_CTR);
 
-	wr_reg(0xE0700111, SATA_MDIO_CTR);
-	wr_reg(0xE05C4111, SATA_MDIO_CTR);
-	wr_reg(0xE04A8111, SATA_MDIO_CTR);
+	if(rx_sens)
+		table = (unsigned int *)PHY_SENSITIVITY[1];
+	else
+		table = (unsigned int *)PHY_SENSITIVITY[0];
 
-	wr_reg(0x00150611, SATA_MDIO_CTR);
-	wr_reg(0x00154611, SATA_MDIO_CTR);
-	wr_reg(0x00158611, SATA_MDIO_CTR);
+	size = sizeof(*PHY_SENSITIVITY)/sizeof(unsigned int);
+	for (i = 0; i < size; i++)
+		wr_reg(table[i], SATA_MDIO_CTR);
 
-	wr_reg(0xC6000A11, SATA_MDIO_CTR);
-	wr_reg(0xC6004A11, SATA_MDIO_CTR);
-	wr_reg(0xC6008A11, SATA_MDIO_CTR);
-
-	wr_reg(0x70000211, SATA_MDIO_CTR);
-	wr_reg(0x70004211, SATA_MDIO_CTR);
-	wr_reg(0x70008211, SATA_MDIO_CTR);
-
-	wr_reg(0xC6600A11, SATA_MDIO_CTR);
-	wr_reg(0xC6604A11, SATA_MDIO_CTR);
-	wr_reg(0xC6608A11, SATA_MDIO_CTR);
-
-	wr_reg(0x20041911, SATA_MDIO_CTR);
-	wr_reg(0x20045911, SATA_MDIO_CTR);
-	wr_reg(0x20049911, SATA_MDIO_CTR);
-
-	wr_reg(0x94aa2011, SATA_MDIO_CTR);
-	wr_reg(0x94aa6011, SATA_MDIO_CTR);
-	wr_reg(0x94aaA011, SATA_MDIO_CTR);
-
-	wr_reg(0x72100911, SATA_MDIO_CTR);
-	wr_reg(0x72104911, SATA_MDIO_CTR);
-	wr_reg(0x72108911, SATA_MDIO_CTR);
-	wr_reg(0x27750311, SATA_MDIO_CTR);
-	wr_reg(0x276e4311, SATA_MDIO_CTR);
-	wr_reg(0x276c8311, SATA_MDIO_CTR);
-
-	wr_reg(0x29001011, SATA_MDIO_CTR);
-	wr_reg(0x29005011, SATA_MDIO_CTR);
-	wr_reg(0x29009011, SATA_MDIO_CTR);
-
-	wr_reg(0x17171511, SATA_MDIO_CTR);
-	wr_reg(0x17175511, SATA_MDIO_CTR);
-	wr_reg(0x17179511, SATA_MDIO_CTR);
-
-	wr_reg(0x07701611, SATA_MDIO_CTR);
-	wr_reg(0x07705611, SATA_MDIO_CTR);
-	wr_reg(0x07709611, SATA_MDIO_CTR);
-
-	//tx driving set to level 2
-	wr_reg(0x94a72011, SATA_MDIO_CTR);
-	wr_reg(0x94a76011, SATA_MDIO_CTR);
-	wr_reg(0x94a7A011, SATA_MDIO_CTR);
-	wr_reg(0x487a2111, SATA_MDIO_CTR);
-	wr_reg(0x487a6111, SATA_MDIO_CTR);
-	wr_reg(0x487aa111, SATA_MDIO_CTR);
-
-	wr_reg(0x00271711, SATA_MDIO_CTR);
-	wr_reg(0x00275711, SATA_MDIO_CTR);
-	wr_reg(0x00279711, SATA_MDIO_CTR);
+#ifdef PHY_CLOCK_DELAY
+	wr_reg(0x7c002a11, SATA_MDIO_CTR);
+	wr_reg(0x7c006a11, SATA_MDIO_CTR);
+	wr_reg(0x7c00aa11, SATA_MDIO_CTR);
+#endif
 }
 
 static void config_mac(unsigned int port)
@@ -1303,34 +1294,66 @@ void sata_init(int port)
 {
 	//int ret, gpio;
 	unsigned int reg;
-
+	unsigned int power_pin;
 	if( port >= CONFIG_SYS_SATA_MAX_DEVICE ) {
 		printf("[SATA] port %d not support\n", port);
 		return;
 	}
-
+	if (port==0)
+		power_pin = CONFIG_PORT0_POWER_PIN;
+	else
+		power_pin = CONFIG_PORT1_POWER_PIN;
+	int gpio_set_value(unsigned gpio, int value);
+	int gpio_get_value(unsigned gpio);
 #ifdef CONFIG_EN_POWER_ONLY
-	if(!getGPIO(CONFIG_PORT0_PRESENT_PIN)) {
+	if(!gpio_get_value(CONFIG_PORT0_PRESENT_PIN)) {
 		printf("[SATA] Hardisk exist! turn on power\n");
-		setGPIO(CONFIG_PORT0_POWER_PIN, 1);
+		gpio_set_value(power_pin, 1);
 	}
 #else
-	setGPIO(CONFIG_PORT0_POWER_PIN, 1);
-	printf("[SATA] enable SATA interface\n");
-	reg = rtd_inl(CLOCK_ENABLE1);
-	reg = reg | 1<<2 | 1<<7;
-	rtd_outl(CLOCK_ENABLE1, reg);
 
-	reg = rtd_inl(SOFT_RESET1);
-	reg = reg | 1<<5 | 1<<7;// | 1<<10;
-	rtd_outl(SOFT_RESET1, reg);
+	gpio_set_value(power_pin, 1);
+	printf("[SATA] enable SATA interface %d\n",port);
+	
+	if (port==0)
+	{
+		reg = rtd_inl(CLOCK_ENABLE1);
+		reg = reg | 1<<2 | 1<<7;
+		rtd_outl(CLOCK_ENABLE1, reg);
 
+		reg = rtd_inl(SOFT_RESET1);
+		reg = reg | 1<<5 | 1<<7;// | 1<<10;
+		rtd_outl(SOFT_RESET1, reg);
+	}
+	else if(port==1)
+	{
+		reg = rtd_inl(CLOCK_ENABLE2);
+		reg = reg | 1<<25 | 1<<26;
+		rtd_outl(CLOCK_ENABLE2, reg);
+
+		reg = rtd_inl(0x98000050);
+		reg = reg | 1<<10 | 1<<9;// | 1<<7;
+		rtd_outl(0x98000050, reg);
+	}
 	config_mac(port);
+#ifdef PHY_SENSITIVITY_B00
+	config_phy(port, 1);
+#else
 	config_phy(port, 0);
+#endif
 
-	reg = rtd_inl(SOFT_RESET1);
-	reg = reg | 1<<10;
-	rtd_outl(SOFT_RESET1, reg);
+	if (port==0)
+	{
+		reg = rtd_inl(SOFT_RESET1);
+		reg = reg | 1<<10;
+		rtd_outl(SOFT_RESET1, reg);
+	}
+	else if(port==1)
+	{
+		reg = rtd_inl(0x98000050);
+		reg = reg | 1<<7;
+		rtd_outl(0x98000050, reg);
+	}
 	send_oob(port);
 #ifdef ENABLE_PHY_LINK_CHECK
 	phy_link_check(port);

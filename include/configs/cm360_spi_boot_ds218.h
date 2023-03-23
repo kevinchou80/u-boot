@@ -19,6 +19,16 @@
 /* #define CONFIG_SYS_RTK_NAND_FLASH */
 /* #define CONFIG_SYS_RTK_EMMC_FLASH */
 
+#define CONFIG_CMD_SATA
+#define CONFIG_SYS_SATA_MAX_DEVICE      2
+#define CONFIG_PORT0_POWER_PIN			56
+#define CONFIG_PORT1_POWER_PIN			19
+#define SSCEN 0
+#define PHY_SENSITIVITY_B00
+/* A00 A01 use 0;B00 use 1 */
+#define PHY_CLOCK_DELAY
+/*B00 must define */
+
 #include "rtd129x_custom_features.h"
 
 #define CONFIG_CHIP_ID            			   "rtd1295"
