@@ -43,6 +43,26 @@
 	#define CONFIG_SHA256
 #endif
 
+/* SD */
+#ifdef CONFIG_RTK_SD_DRIVER
+	#define CONFIG_SD
+	#define CONFIG_SD30
+	#ifndef CONFIG_PARTITIONS
+		#define CONFIG_PARTITIONS
+	#endif
+	#define CONFIG_DOS_PARTITION
+	#define CONFIG_RTK_SD
+	#define CONFIG_CMD_SD
+	#define USE_SIMPLIFY_READ_WRITE
+	#define CONFIG_SHA256
+	
+	#define CONFIG_BOOT_FROM_SD
+	#define CONFIG_BOOT_FROM_SD_DTB			"sd.dtb"
+	#define CONFIG_BOOT_FROM_SD_ROOTFS		"root.sd.cpio.gz_pad.img"
+	#define CONFIG_BOOT_FROM_SD_VMLINUX		"sd.uImage"
+	#define CONFIG_BOOT_FROM_SD_AUDIO_CORE	"bluecore.audio"
+#endif
+
 /* ENV */
 #if defined(CONFIG_SYS_RTK_EMMC_FLASH)
 #undef	CONFIG_ENV_IS_NOWHERE
