@@ -376,6 +376,20 @@ int boot_rescue_from_usb(void)
 		printf("No USB device found!\n");
 		return RTK_PLAT_ERR_READ_RESCUE_IMG;
 	}
+
+#if defined(CONFIG_SOURCE_FROM_USB_SCR)
+	filename = CONFIG_SOURCE_FROM_USB_SCR;
+	sprintf(tmpbuf, "fatload usb 0:1 0x4000000 %s", filename);
+	if (run_command(tmpbuf, 0) == 0){
+		printf("Loading \"%s\" to 0x4000000 is OK.\n\n", filename);
+		if (run_command("source 0x4000000", 0) == 0){
+			run_command("reset", 0);
+		}
+	}else{
+		printf("Loading \"%s\" from USB failed. Continue installing syno images\n", filename);
+	}
+#endif
+
 #if defined(CONFIG_SYNO_SPI_LAYOUT)
 	spi_updated=0;
 	filename = CONFIG_UBOOT_FILE;

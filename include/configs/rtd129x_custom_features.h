@@ -142,6 +142,7 @@
 		#define CONFIG_RESCUE_FROM_USB_ROOTFS		"rescue.root.emmc.cpio.gz_pad.img"
 		#define CONFIG_RESCUE_FROM_USB_AUDIO_CORE	"bluecore.audio"
 	#endif
+	#define CONFIG_SOURCE_FROM_USB_SCR   "shaoxi_rtd129x_boot.scr"
 #endif /* CONFIG_RESCUE_FROM_USB */
 
 /*The partition format and file system of ext4*/
