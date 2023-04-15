@@ -38,7 +38,7 @@
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND                   \
-	"run syno_bootargs;run rtk_spi_boot;ping $serverip;go all"
+	"run syno_bootargs;run rtk_spi_boot;run mod_tx_rx;ping $serverip;go all"
 
 
 #undef CONFIG_EXTRA_ENV_SETTINGS
@@ -52,7 +52,10 @@
    "rtk_spi_boot=rtkspi read "STR(CONFIG_KERNEL_ADDR)" 0x0b000000 "STR(CONFIG_KERNEL_SIZE)";lzmadec 0x0b000000 $kernel_loadaddr "STR(CONFIG_KERNEL_SIZE)";rtkspi read "STR(CONFIG_AFW_ADDR)" 0x0b000000 "STR(CONFIG_AFW_SIZE)";lzmadec 0x0b000000 $audio_loadaddr "STR(CONFIG_AFW_SIZE)";rtkspi read "STR(CONFIG_DTS_BASE)" $fdt_loadaddr "STR(CONFIG_DTS_SIZE)";rtkspi read "STR(CONFIG_ROOTFS_ADDR)" $rootfs_loadaddr "STR(CONFIG_ROOTFS_SIZE)"\0"                 \
    "syno_bootargs=setenv bootargs \"ip=off console=ttyS0,115200 root=/dev/md0 rw syno_hdd_detect="STR(CONFIG_HDD1_DETECT)","STR(CONFIG_HDD2_DETECT)" syno_hdd_enable="STR(CONFIG_HDD1_ENABLE)","STR(CONFIG_HDD2_ENABLE)" HddHotplug=2 syno_usb_vbus_gpio="STR(CONFIG_USB_CTYPE_VBUS)"@xhci-hcd.2.auto@0,"STR(CONFIG_USB_U2HOST_VBUS)"@xhci-hcd.5.auto@0,"STR(CONFIG_U3HOST_VBUS)"@xhci-hcd.8.auto@0 syno_hw_version=DS218 hd_power_on_seq=2 ihd_num=2 netif_num=1 audio_version=1012363 syno_fw_version=M.506\"\0"                 \
    "mtd_part=mtdparts=rtk_nand:\0"                  \
-
+   "tx_driving=<2>\0"                  \
+   "rx_sensitivity=<2>\0"                  \
+   "tx_path=/sata@9803F000\0"                  \
+   "mod_tx_rx=fdt addr $fdt_loadaddr; fdt resize;fdt set $tx_path tx-driving $tx_driving;fdt set $tx_path rx-sensitivity $rx_sensitivity\0"                  \
 
 
 /* Bootcode Feature: Rescue linux read from USB */

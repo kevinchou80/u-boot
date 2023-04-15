@@ -35,14 +35,16 @@
 #define CONFIG_ROOTFS_SIZE                     0x426fc0
 #define CONFIG_INITRD_SIZE                     0x426fc0
 
-#undef CONFIG_FACTORY_BASE
-#undef CONFIG_FACTORY_SIZE
-#define CONFIG_FACTORY_BASE                    0xffe000
-#define CONFIG_FACTORY_SIZE                    0x001000
+#ifdef CONFIG_SYS_RTK_SPI_FLASH
+	#undef CONFIG_FACTORY_BASE
+	#undef CONFIG_FACTORY_SIZE
+	#define CONFIG_FACTORY_BASE                    0xffe000
+	#define CONFIG_FACTORY_SIZE                    0x001000
+#endif
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND                   \
-	"run syno_bootargs;run rtk_spi_boot;ping $serverip;go all"
+	"run syno_bootargs;run rtk_spi_boot;run mod_tx_rx;ping $serverip;go all"
 
 
 #undef CONFIG_EXTRA_ENV_SETTINGS
@@ -56,7 +58,10 @@
    "rtk_spi_boot=rtkspi read "STR(CONFIG_KERNEL_ADDR)" 0x0b000000 "STR(CONFIG_KERNEL_SIZE)";lzmadec 0x0b000000 $kernel_loadaddr "STR(CONFIG_KERNEL_SIZE)";rtkspi read "STR(CONFIG_AFW_ADDR)" 0x0b000000 "STR(CONFIG_AFW_SIZE)";lzmadec 0x0b000000 $audio_loadaddr "STR(CONFIG_AFW_SIZE)";rtkspi read "STR(CONFIG_DTS_BASE)" $fdt_loadaddr "STR(CONFIG_DTS_SIZE)";mw.l $rootfs_loadaddr 0x0 0x109C00;rtkspi read "STR(CONFIG_ROOTFS_ADDR)" $rootfs_loadaddr "STR(CONFIG_ROOTFS_SIZE)"\0"                 \
    "syno_bootargs=setenv bootargs \"ip=off console=ttyS0,115200 root=/dev/md0 rw syno_hdd_detect="STR(CONFIG_HDD1_DETECT)","STR(CONFIG_HDD2_DETECT)","STR(CONFIG_HDD3_DETECT)","STR(CONFIG_HDD4_DETECT)" syno_hdd_enable="STR(CONFIG_HDD1_ENABLE)","STR(CONFIG_HDD2_ENABLE)","STR(CONFIG_HDD3_ENABLE)","STR(CONFIG_HDD4_ENABLE)" syno_spinup_group=2,1,1 syno_spinup_group_delay=15 syno_usb_vbus_gpio="STR(CONFIG_USB_CTYPE_VBUS)"@xhci-hcd.2.auto@0,"STR(CONFIG_U3HOST_VBUS)"@xhci-hcd.5.auto@0 syno_hw_version=DS420j hd_power_on_seq=4 ihd_num=4 netif_num=1 swiotlb=1 audio_version=1012363 syno_fw_version=M.904\"\0"                 \
    "mtd_part=mtdparts=rtk_nand:\0"                  \
-
+   "tx_driving=<2>\0"                  \
+   "rx_sensitivity=<2>\0"                  \
+   "tx_path=/sata@9803F000\0"                  \
+   "mod_tx_rx=fdt addr $fdt_loadaddr; fdt resize;fdt set $tx_path tx-driving $tx_driving;fdt set $tx_path rx-sensitivity $rx_sensitivity\0"                  \
 
 
 /* Bootcode Feature: Rescue linux read from USB */
