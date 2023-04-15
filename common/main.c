@@ -451,6 +451,11 @@ int abortboot(int bootdelay)
 			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
 #endif
 
+#if defined(CONFIG_AW2015)
+			void aw2015_led2(void);
+			aw2015_led2();
+#endif
+
 		}
 #endif
 

@@ -313,6 +313,7 @@ obj-y += cmd_uart_read_write.o
 # realtek cmd pmic
 obj-y += pmic/
 
+obj-$(CONFIG_AW2015) += aw2015.o
 # uart mp tool
 obj-y += cmd_uart_write.o
 

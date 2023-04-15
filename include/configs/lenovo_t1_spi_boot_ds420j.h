@@ -91,6 +91,7 @@
 #define CONFIG_U3HOST_VBUS    133
 /* ds420j u3host default 22 */
 
+#define CONFIG_AW2015
 
 #include <configs/rtd129x_ds420j_parameter.h>
 

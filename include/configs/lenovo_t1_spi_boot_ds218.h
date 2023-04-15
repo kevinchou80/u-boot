@@ -86,6 +86,7 @@
 #define CONFIG_U3HOST_VBUS    133
 /* ds218 u3host default 22 */
 
+#define CONFIG_AW2015
 
 #include <configs/rtd129x_ds218_parameter.h>
 

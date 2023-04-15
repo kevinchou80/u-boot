@@ -389,6 +389,10 @@ int boot_rescue_from_usb(void)
 			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
 			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
 			#endif
+			#if defined(CONFIG_AW2015)
+			void aw2015_led2_blink(void);
+			aw2015_led2_blink();
+			#endif
 			run_command("rtkspi erase 0x20000 0xa0000", 0);
 			run_command("rtkspi write "STR(CONFIG_UBOOT_ADDR)" 0x3000000 "STR(CONFIG_UBOOT_SIZE), 0);
 			spi_updated=1;
@@ -408,6 +412,10 @@ int boot_rescue_from_usb(void)
 			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
 			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
 			#endif
+			#if defined(CONFIG_AW2015)
+			void aw2015_led2_blink(void);
+			aw2015_led2_blink();
+			#endif
 			run_command("rtkspi erase "STR(CONFIG_FWIMG_ADDR)" "STR(CONFIG_FWIMG_SIZE), 0);
 			run_command("rtkspi write "STR(CONFIG_FWIMG_ADDR)" 0x3000000 "STR(CONFIG_FWIMG_SIZE), 0);
 			spi_updated=1;
@@ -426,6 +434,10 @@ int boot_rescue_from_usb(void)
 			pwm_set_freq(SYS_LED_PWM_PORT_NUM, 20);  // set the frequency to 20 HZ
 			pwm_set_duty_rate(SYS_LED_PWM_PORT_NUM, 50);
 			pwm_enable(SYS_LED_PWM_PORT_NUM, 1);
+			#endif
+			#if defined(CONFIG_AW2015)
+			void aw2015_led2_blink(void);
+			aw2015_led2_blink();
 			#endif
 			run_command("rtkspi erase "STR(CONFIG_DTS_BASE)" "STR(CONFIG_DTS_SIZE), 0);
 			run_command("rtkspi write "STR(CONFIG_DTS_BASE)" 0x3000000 "STR(CONFIG_DTS_SIZE), 0);

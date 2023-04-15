@@ -889,6 +889,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
     pwm_set_duty_rate(FAN_PWM_PORT_NUM, 50);  // set the FAN speed to 50%
     pwm_enable(FAN_PWM_PORT_NUM, 1);
 #endif /* CONFIG_RTD129X_PWM */
+	void aw2015_led3(void);
+	aw2015_led3();
 #endif /* CONFIG_BOARD_LENOVO_T1 */
 
 #ifdef CONFIG_BOARD_LENOVO_T2
