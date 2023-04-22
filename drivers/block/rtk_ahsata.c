@@ -1301,8 +1301,10 @@ void sata_init(int port)
 	}
 	if (port==0)
 		power_pin = CONFIG_PORT0_POWER_PIN;
+	#ifdef CONFIG_PORT1_POWER_PIN
 	else
 		power_pin = CONFIG_PORT1_POWER_PIN;
+	#endif
 	int gpio_set_value(unsigned gpio, int value);
 	int gpio_get_value(unsigned gpio);
 #ifdef CONFIG_EN_POWER_ONLY
