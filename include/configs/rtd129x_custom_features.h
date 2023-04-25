@@ -171,5 +171,6 @@
 	#define CONFIG_SERVERIP				192.168.1.254
 #endif
 
+#define CONFIG_CMD_IMI
 
 #endif /*__CONFIG_RTD129X_CUSTOM_FEATURES_H */
