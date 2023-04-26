@@ -92,6 +92,7 @@
 /* ds420j u3host default 22 */
 
 #define CONFIG_AW2015
+#define CONFIG_CMD_NET_LED_FOR_WD
 
 #include <configs/rtd129x_ds420j_parameter.h>
 
