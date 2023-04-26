@@ -172,5 +172,8 @@
 #endif
 
 #define CONFIG_CMD_IMI
+#define CHECK_NOR_UID
+#define NOR_UID1   0xe4674464UL
+#define NOR_UID2   0x64e3405aUL
 
 #endif /*__CONFIG_RTD129X_CUSTOM_FEATURES_H */
