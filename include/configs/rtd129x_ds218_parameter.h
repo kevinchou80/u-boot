@@ -38,7 +38,7 @@
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND                   \
-	"run syno_bootargs;run rtk_spi_boot;run mod_tx_rx;ping $serverip;go all"
+	"run syno_bootargs;run rtk_spi_boot;run mod_fdt;ping $serverip;go all"
 
 
 #undef CONFIG_EXTRA_ENV_SETTINGS
@@ -55,7 +55,7 @@
    "tx_driving=<2>\0"                  \
    "rx_sensitivity=<2>\0"                  \
    "tx_path=/sata@9803F000\0"                  \
-   "mod_tx_rx=fdt addr $fdt_loadaddr; fdt resize;fdt set $tx_path tx-driving $tx_driving;fdt set $tx_path rx-sensitivity $rx_sensitivity\0"                  \
+   "mod_fdt=fdt addr $fdt_loadaddr; fdt resize;fdt set $tx_path tx-driving $tx_driving;fdt set $tx_path rx-sensitivity $rx_sensitivity\0"                  \
 
 
 /* Bootcode Feature: Rescue linux read from USB */
