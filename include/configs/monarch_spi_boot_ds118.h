@@ -54,16 +54,15 @@
 #define CONFIG_INSTALL_GPIO_NUM    135
 /*#define FACTORY_RST_BTN 34		// igpio34 is the factory reset button for Monarch*/
 
-#define CONFIG_HDD_ENABLE    18
-/* ds118 default 85 */
+/* DS218:  "syno_hdd_detect=4,5 syno_hdd_enable=85,86 HddHotplug=2"
+   DS420j: "syno_hdd_detect=4,5,6,7 syno_hdd_enable=85,86,82,81 syno_spinup_group=2,1,1 syno_spinup_group_delay=15 HddHotplug=4"
+   DS118:  "syno_hdd_enable=85" */
+#define CONFIG_SYNO_HDD_PARAMS   "syno_hdd_enable=18"
 
-#define CONFIG_HDD_BLINK    23
-/* ds118 default 18 */
-
-#define CONFIG_USB_CTYPE_VBUS    19
-/* ds118 default 23 */
-#define CONFIG_U3HOST_VBUS    22
-/* ds218 u3host default 22 */
+/* DS218:  "syno_castrated_xhc=xhci-hcd.5.auto@1 syno_usb_vbus_gpio=23@xhci-hcd.2.auto@0,17@xhci-hcd.5.auto@0,22@xhci-hcd.8.auto@0"
+   DS420j: "syno_usb_vbus_gpio=23@xhci-hcd.2.auto@0,22@xhci-hcd.5.auto@0"
+   DS118:  "syno_usb_vbus_gpio=23@xhci-hcd.2.auto@0,22@xhci-hcd.5.auto@0" */
+#define CONFIG_SYNO_USB_PARAMS  "syno_usb_vbus_gpio=19@xhci-hcd.2.auto@0,22@xhci-hcd.5.auto@0"
 
 #undef  CONFIG_HDMITX_MODE
 #define CONFIG_HDMITX_MODE				 0 /* 0:Always OFF, 1: Always ON, 2: Auto */
